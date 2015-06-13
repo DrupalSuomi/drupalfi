@@ -2,27 +2,24 @@
 
 <header id="header">
   <div class="wrapper">
-
-    <?php if ($logo): ?>
-      <div id="logo">
-        <a href="<?php print $front_page; ?>" title="<?php print t('Home'); ?>" rel="home">
-          <img src="<?php print $logo; ?>" alt="<?php print t('Home'); ?>"/>
-        </a>
-      </div>
-    <?php endif; ?>
-
     <?php if ($page['header']): ?>
       <div id="header-region">
         <?php print render($page['header']); ?>
       </div>
     <?php endif; ?>
-
   </div>
 </header> <!-- /header -->
 
 <?php if ($main_menu): ?>
   <nav id="navigation" class="menu">
     <div class="wrapper">
+      <?php if ($logo): ?>
+        <div id="logo">
+          <a href="<?php print $front_page; ?>" title="<?php print t('Home'); ?>" rel="home">
+            <img src="<?php print $logo; ?>" alt="<?php print t('Home'); ?>"/>
+          </a>
+        </div>
+      <?php endif; ?>
       <?php print theme('links', array('links' => $main_menu, 'attributes' => array('id' => 'primary', 'class' => array('links', 'clearfix', 'main-menu')))); ?>
     </div>
   </nav> <!-- /navigation -->

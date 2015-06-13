@@ -18,6 +18,17 @@ if (theme_get_setting('drupalfi_tabs')) {
   drupal_add_css( drupal_get_path('theme', 'drupalfi') .'/css/tabs.css');
 }
 
+
+/**
+* Removes http\s and www. from the name
+* @param $url string
+*/
+
+function drupalfi_format_url($url) {
+  $url = preg_replace('/(>https:\/\/www\.)|(>http:\/\/www\.)|(>http:\/\/)|(>https:\/\/)/', '>',$url);
+  return $url;  
+}
+
 function drupalfi_preprocess_html(&$vars) {
   global $user, $language;
 

@@ -5,3 +5,4 @@
 # sass --watch sass:css
 #
 # This will automatically watch file changes within the "sass" directory and will compile to the "css" direectory.
+css_dir = "css"

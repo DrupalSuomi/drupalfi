@@ -36,14 +36,16 @@ a
     line-height: 3em
 
 #logo
-  width: 350px
+  width: 205px
   @include media($desktop)
     margin: 0 20px
   @include media($tablet)
     text-align: center
 
 #header
-  margin: 30px auto
+  z-index: 10
+  position: absolute
+  margin: 30px 0 0 10%
 
 #name-and-slogan
   display: inline-block
@@ -199,15 +201,102 @@ div.status
   background: #ccff88
   border-color: #bbee77
 
+/* Front-page navi
+.front #navigation
+  top: 50px
+  @include media($tablet)
+    top: 0
+  #primary
+    border-bottom: 1px solid #737677
+
+/* Navi for not-front
+.not-front 
+  #main
+    margin-top: 150px
+  #navigation
+    position: fixed 
+    height: 50px
+    top: 0
+    background: #415161
+    #primary
+      margin-top: 10px
+      .active-trail
+        color: #3498db
+        background: url(../images/active-trail-arrow.png) no-repeat bottom
+
+.view-companies
+  .views-row
+    @include clearfix()
+    clear: both
+    width: 100%
+    margin-bottom: 60px
+    .views-field-title 
+      margin-bottom: 10px
+      .field-content
+        font-size: 22px
+        color: #3498db
+    a, p, span, div
+      font-size: 16px
+      line-height: 20px
+    .views-field-field-logo.views-field
+      float: left
+      width: 20%
+      @include media($tablet)
+        text-align: center
+        float: none
+        width: auto
+    .views-fieldset.field-wrapper
+      float: left
+      width: 79.9%
+      @include media($tablet)
+        text-align: center
+        float: none
+        width: auto
+      .views-field-nothing
+        text-transform: uppercase
+        h4
+          font-size: 0.9em
+          margin: 20px 0 0 0
+      .views-field-field-address
+        @include clearfix()
+        padding-bottom: 20px
+        @include media($tablet)
+          .field-content
+            margin: 0 auto
+            display: table
+      .views-field-field-website-url
+        margin: 40px 0
+        a
+          font-size: 14px
+          text-transform: uppercase
+          background: #3498db
+          padding: 10px 20px
+          color: #fff
+          border-radius: 20px
+
 #navigation
+  width: 100%
+  font-family: "Open Sans", "Segoe UI", "Helvetica", sans-serif
+  font-size: 16px
+  font-weight: 100
+  text-transform: uppercase
   line-height: 1.3em
-  background: $blue
-  @include border-radius(3px, 3px)
-  li
+  z-index: 10
+  right: 0
+  position: absolute
+  .wrapper
+    width: auto
   a
     display: inline-block
     padding: 10px
     color: $white
+  #logo 
+    float: left
+    a
+      padding: 0
+  #primary
+    float: right
+    font-size: 14px
   #secondary
     font-size: 0.7em
   @include media($tablet)
@@ -221,9 +310,17 @@ a#collapsed-menu-button
   width: 10em
   text-align: center
   display: block
-  margin: 1em auto
-  background: white url(../images/menu-icon.png) no-repeat 50px 16px
+  margin-top: 1em
+  background: url(../images/menu-icon.png) no-repeat 50px 16px
   padding-left: 30px
+  @include media($tablet)
+    border-radius: 0
+    text-indent: -9999px
+    padding-bottom: 0
+    overflow: hidden
+    background-position: top right
+    border: none
+    width: auto
 
 #mobile-menu-inner
   width: 100%
@@ -246,7 +343,7 @@ a#collapsed-menu-button
   opacity: 0
 
 #content-bottom
-  background: url('../images/footer.jpg') repeat-x center center fixed
+  background: $white
   background-size: cover
   -webkit-background-size: cover
   -moz-background-size: cover
@@ -257,7 +354,8 @@ a#collapsed-menu-button
   a, a.active
     color: $blue
   h2
-    color: $white
+    color: $blue
+    border-bottom: 1px solid $grey
     font-size: 1.14em
     text-transform: uppercase
     font-weight: 500
@@ -265,6 +363,9 @@ a#collapsed-menu-button
     font-size: 1.85em
   .views-row
     border-bottom: 1px solid $white
+    text-align: left
+    .views-field
+      color: $gray
   .block
     float: left
     width: 32%
@@ -279,6 +380,17 @@ a#collapsed-menu-button
       padding: 15px 25px
   #block-views-news-block
     margin-right: 2%
+    color: gray
+    .more-link
+      width: 60%
+      text-align: center
+      background: $blue
+      @include border-radius(20px)
+      a
+        font-family: "Open Sans", "Segoe UI", "Helvetica", sans-serif
+        color: $white
+        font-size: 12px
+        text-transform: uppercase
     @include media($mobile)
       margin-right: 0
   .block-views
@@ -306,29 +418,140 @@ a#collapsed-menu-button
   margin: 0
 
 #footer
+  background: $dark_blue
+  padding-bottom: 40px
   width: 100%
   font-size: 0.7em
   text-align: center
+  color: $white
+  .wrapper .region-footer
+    margin-top: 20px
+  .block-title
+    margin: 0
 
 /* Frontpage view
+#block-views-frontpage_view-block_1
+  height: 70vh
+  .block-inner, .content, .view-content
+    height: 100%
+  .view-display-id-block_1
+    height: 100%
+    .views-row-1
+      // display table is screwing it so 101% is actually 100%
+      height: 101% 
+      font-size: 45px
+      background: url('../images/drupal_01.jpg') no-repeat
+      background-size: cover
+      padding: 0
+      display: table
+      .wrapper
+        display: table-cell
+        vertical-align: middle
+        .body
+          width: 60%
+          margin: 0 auto
+      @include media($tablet)
+        font-size: 30px
+      p
+        color: $white
+
+#block-views-frontpage_view-block_2, #block-views-frontpage_view-block_3
+  width: 50%
+  float: left
+  background: $dark_blue
+  height: 30vh
+  display: table
+  @include media($tablet)
+    height: auto
+    padding-bottom: 20px
+    width: 100%
+    float: none
+    &:not(#block-views-frontpage_view-block_2)
+      width: 100%
+  .block-inner
+    display: table-cell
+    vertical-align: middle
+    margin: 0 auto
+    .views-row
+      padding: 0
+    .views-field
+      font-size: 9px
+      font-family: "Open Sans", "Segoe UI", "Helvetica", sans-serif
+      text-align: center
+      color: $gray
+    .views-field-field-event-date .date-display-single,
+    .views-field-created span
+      font-size: 14px
+      color: #fff
+    .views-field-nothing 
+      .stripe
+        display: block
+        width: 30px
+        height: 2px
+        background: #fff
+        margin: 10px auto
+      h4
+        font-size: 14px
+        font-family: "Open Sans", "Segoe UI", "Helvetica", sans-serif
+        font-weight: 500
+        text-transform: uppercase
+        text-align: center
+    h2.title
+      font-family: "Open Sans", "Segoe UI", "Helvetica", sans-serif
+      font-size: 16px
+      a:not(.view-all)
+        font-size: 20px
+        display: block
+        margin-bottom: 25px
+      a.view-all
+        background: $blue
+        color: $white
+        padding: 10px
+        @include border-radius(20px)
+        font-size: 10px
+        text-transform: uppercase
+// Uutiset listing-page overflow prevention
+.page-uutiset .views-field-field-news-body a
+  word-wrap: break-word
+
+#block-system-main
+  clear: both
 .view-frontpage-view .views-row
   clear: both
   float: left
+  font-size: 19px
   width: 100%
   padding: 80px 10px
+  font-family: "Open Sans", "Segoe UI", "Helvetica", sans-serif
+  font-weight: 100
   @include media($tablet)
+    font-size: 14px
     padding: 40px 10px
   &.views-row-even
-    background: $blue
-    color: $white
+    background: #ebebeb
+    color: $black
     h2.title
-      color: $white
+      color: $blue
     a
       background: $white
       margin: 0 3px
       padding: 0 10px 
       border-bottom-right-radius: 10px
       border-top-left-radius: 10px
+  &.views-row-3
+    background: url('../images/footer.jpg')
+    background-size: cover
+    h2
+      color: $white
+    p
+      color: $white
+    a
+      font-size: 12px
+      background: $blue
+      color: $white
+      padding: 10px 30px
+      text-transform: uppercase
+      @include border-radius(20px)
   h2.title
     font-size: 2.36em
     line-height: 1.1
@@ -339,8 +562,6 @@ a#collapsed-menu-button
       width: 100%
       padding-right: 0
       text-align: center
-      br
-        display: none
     p
       margin-bottom: 0 
   .body

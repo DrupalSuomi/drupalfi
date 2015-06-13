@@ -23,23 +23,19 @@ function event_views_default_views() {
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
   $handler->display->display_options['title'] = 'Tapahtumat';
+  $handler->display->display_options['use_more'] = TRUE;
   $handler->display->display_options['use_more_always'] = FALSE;
+  $handler->display->display_options['use_more_text'] = 'Katso Lisää';
   $handler->display->display_options['access']['type'] = 'perm';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
   $handler->display->display_options['exposed_form']['type'] = 'basic';
   $handler->display->display_options['exposed_form']['options']['reset_button_label'] = 'Palauta oletusarvoihin';
   $handler->display->display_options['pager']['type'] = 'some';
-  $handler->display->display_options['pager']['options']['items_per_page'] = '5';
+  $handler->display->display_options['pager']['options']['items_per_page'] = '3';
+  $handler->display->display_options['pager']['options']['offset'] = '0';
   $handler->display->display_options['style_plugin'] = 'list';
   $handler->display->display_options['row_plugin'] = 'fields';
-  /* Kenttä: Sisältö: Otsikko */
-  $handler->display->display_options['fields']['title']['id'] = 'title';
-  $handler->display->display_options['fields']['title']['table'] = 'node';
-  $handler->display->display_options['fields']['title']['field'] = 'title';
-  $handler->display->display_options['fields']['title']['label'] = '';
-  $handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
-  $handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
   /* Kenttä: Sisältö: Date */
   $handler->display->display_options['fields']['field_event_date']['id'] = 'field_event_date';
   $handler->display->display_options['fields']['field_event_date']['table'] = 'field_data_field_event_date';
@@ -53,6 +49,13 @@ function event_views_default_views() {
     'multiple_from' => '',
     'multiple_to' => '',
   );
+  /* Kenttä: Sisältö: Otsikko */
+  $handler->display->display_options['fields']['title']['id'] = 'title';
+  $handler->display->display_options['fields']['title']['table'] = 'node';
+  $handler->display->display_options['fields']['title']['field'] = 'title';
+  $handler->display->display_options['fields']['title']['label'] = '';
+  $handler->display->display_options['fields']['title']['alter']['word_boundary'] = FALSE;
+  $handler->display->display_options['fields']['title']['alter']['ellipsis'] = FALSE;
   /* Sort criterion: Sisältö: Date -  start date (field_event_date) */
   $handler->display->display_options['sorts']['field_event_date_value']['id'] = 'field_event_date_value';
   $handler->display->display_options['sorts']['field_event_date_value']['table'] = 'field_data_field_event_date';
@@ -92,6 +95,14 @@ function event_views_default_views() {
   $handler->display->display_options['defaults']['row_plugin'] = FALSE;
   $handler->display->display_options['row_plugin'] = 'fields';
   $handler->display->display_options['defaults']['row_options'] = FALSE;
+  $handler->display->display_options['defaults']['empty'] = FALSE;
+  /* No results behavior: Global: Text area */
+  $handler->display->display_options['empty']['area']['id'] = 'area';
+  $handler->display->display_options['empty']['area']['table'] = 'views';
+  $handler->display->display_options['empty']['area']['field'] = 'area';
+  $handler->display->display_options['empty']['area']['empty'] = TRUE;
+  $handler->display->display_options['empty']['area']['content'] = 'Ei tulevia tapahtumia! ';
+  $handler->display->display_options['empty']['area']['format'] = 'wysiwyg_profile';
   $handler->display->display_options['defaults']['fields'] = FALSE;
   /* Kenttä: Event date hidden */
   $handler->display->display_options['fields']['field_event_date_1']['id'] = 'field_event_date_1';
@@ -168,14 +179,16 @@ function event_views_default_views() {
   $translatables['events'] = array(
     t('Master'),
     t('Tapahtumat'),
-    t('more'),
+    t('Katso Lisää'),
     t('Apply'),
     t('Palauta oletusarvoihin'),
     t('Sort by'),
     t('Asc'),
     t('Desc'),
     t('Block'),
+    t('more'),
     t('Sivu'),
+    t('Ei tulevia tapahtumia! '),
     t('[title] [field_event_date_1]'),
     t('<p><strong>Aika:</strong> [field_event_date]</p>'),
     t('<p><strong>Paikka: </strong>[field_event_address-thoroughfare], [field_event_address-premise], [field_event_address-postal_code] [field_event_address-locality], [field_event_address-country]</p>'),
