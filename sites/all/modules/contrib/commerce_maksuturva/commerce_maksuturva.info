@@ -1,0 +1,17 @@
+name = Commerce Maksuturva
+description = Commerce Maksuturva integrates Maksuturva payments with Drupal Commerce.
+package = Commerce (contrib)
+dependencies[] = commerce
+dependencies[] = commerce_payment
+dependencies[] = job_scheduler
+core = 7.x
+
+; Base module files
+files[] = commerce_maksuturva.module
+
+; Information added by drupal.org packaging script on 2012-09-05
+version = "7.x-1.0-beta3"
+core = "7.x"
+project = "commerce_maksuturva"
+datestamp = "1346852285"
+
