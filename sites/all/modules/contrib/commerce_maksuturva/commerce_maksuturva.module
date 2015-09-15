@@ -1,0 +1,759 @@
+<?php
+
+/**
+ * @file
+ * Integrates Maksuturva payments with Drupal Commerce
+ */
+
+define('MAKSUTURVA_TEST_SELLER_ID', 'testikauppias');
+define('MAKSUTURVA_TEST_PRIVATE_KEY', '11223344556677889900');
+define('MAKSUTURVA_DEFAULT_LOCALE', 'fi_FI');
+define('MAKSUTURVA_DEFAULT_ACCOUNT_TYPE', 'maksuturva');
+define('MAKSUTURVA_DEFAULT_REFERENCE_BASE', '5000');
+define('MAKSUTURVA_DEFAULT_KEYGENERATION', '1');
+define('MAKSUTURVA_DEFAULT_ENVIRONMENT', 'production');
+define('MAKSUTURVA_DEFAULT_BILLING_ADDRESS', 'commerce_customer_billing:commerce_customer_address');
+define('MAKSUTURVA_DEFAULT_NAME_FORMAT_HANDLER', 'oneline');
+define('MAKSUTURVA_TRANSACTION_STATUS_DELAYED', 'delayed');
+
+/**
+ * Implements hook_commerce_payment_method_info().
+ */
+function commerce_maksuturva_commerce_payment_method_info() {
+  $payment_methods = array();
+
+  $payment_methods['commerce_maksuturva'] = array(
+    'title' => t('Maksuturva'),
+    'description' => t('Maksuturva payment service'),
+    'active' => TRUE,
+    'terminal' => FALSE,
+    'offsite' => TRUE,
+    'callbacks' => array(
+      'settings_form' => 'commerce_maksuturva_settings_form',
+    ),
+  );
+
+  return $payment_methods;
+}
+
+/**
+ * Payment method settings form.
+ *
+ * @param $settings
+ *   Default settings provided from rules
+*/
+function commerce_maksuturva_settings_form($settings) {
+  $form = array();
+  $form['seller_id'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Seller ID'),
+    '#description' => t('Maksuturva account\'s Seller ID'),
+    '#default_value' => !empty($settings['seller_id']) ? $settings['seller_id'] : MAKSUTURVA_TEST_SELLER_ID,
+  );
+  $form['private'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Seller private key'),
+    '#description' => t('Maksuturva account\'s private key'),
+    '#default_value' => !empty($settings['private']) ? $settings['private'] : MAKSUTURVA_TEST_PRIVATE_KEY,
+  );
+  $form['keygeneration'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Key generation'),
+    '#description' => t('Maksuturva key generation'),
+    '#default_value' => !empty($settings['keygeneration']) ? $settings['keygeneration'] : MAKSUTURVA_DEFAULT_KEYGENERATION,
+  );
+  $form['locale'] = array(
+    '#type' => 'select',
+    '#options' => array(
+      'fi_FI' => t('Finnish'),
+      'sv_FI' => t('Swedish'),
+      'en_FI' => t('English'),
+    ),
+    '#title' => t('Language'),
+    '#description' => t('Maksuturva service language'),
+    '#default_value' => !empty($settings['locale']) ? $settings['locale'] : MAKSUTURVA_DEFAULT_LOCALE,
+  );
+  $form['account_type'] = array(
+    '#type' => 'select',
+    '#options' => array(
+      'maksuturva' => t('Maksuturva'),
+      'emaksut' => t('eMaksut'),
+    ),
+    '#title' => t('Account type'),
+    '#description' => t('Maksuturva account type'),
+    '#default_value' => !empty($settings['account_type']) ? $settings['account_type'] : MAKSUTURVA_DEFAULT_ACCOUNT_TYPE,
+  );
+  $form['mode'] = array(
+    '#type' => 'select',
+    '#options' => array(
+      'production' => t('Production'),
+      'test' => t('Test environment'),
+    ),
+    '#title' => t('Environment mode'),
+    '#description' => t('Whether to use Maksuturva\'s production or testing environment. When in testing mode all requests will be sent to http://test1.maksuturva.fi server.'),
+    '#default_value' => !empty($settings['mode']) ? $settings['mode'] : MAKSUTURVA_DEFAULT_ENVIRONMENT,
+  );
+  $form['bank_account'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Seller bank account'),
+    '#description' => t('Seller bank account in IBAN format (optional)'),
+    '#default_value' => !empty($settings['seller_iban']) ? $settings['seller_iban'] : '',
+  );
+  $form['reference_base'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Base number'),
+    '#required' => TRUE,
+    '#default_value' => !empty($settings['reference_base']) ? $settings['reference_base'] : MAKSUTURVA_DEFAULT_REFERENCE_BASE,
+    '#description' => t('Base number used for calculating reference numbers. Once this is set it shouldn\'t be changed or it might break existing payments.'),
+  );
+  $form['billing_address'] = array(
+    '#type' => 'select',
+    '#title' => t('Billing address'),
+    '#required' => TRUE,
+    '#empty_value' => '',
+    '#description' => t('Select the right customer profile where billing information will be stored.'),
+    '#default_value' => !empty($settings['billing_address']) ? $settings['billing_address'] : MAKSUTURVA_DEFAULT_BILLING_ADDRESS,
+    '#options' => _commerce_maksuturva_get_address_options(),
+  );
+  $form['delivery_address'] = array(
+    '#type' => 'select',
+    '#title' => t('Delivery address'),
+    '#description' => t('Select the right customer profile where delivery information will be stored.'),
+    '#default_value' => !empty($settings['delivery_address']) ? $settings['delivery_address'] : '',
+    '#empty_option' => t('- Same as billing address -'),
+    '#options' => _commerce_maksuturva_get_address_options(),
+  );
+  $form['name_format_handler'] = array(
+    '#type' => 'select',
+    '#title' => t('Name format handler'),
+    '#description' => t('Addressfield\'s format handler for name. This will be applied for billing and delivery addresses.'),
+    '#default_value' => !empty($settings['name_format_handler']) ? $settings['name_format_handler'] : 'oneline',
+    '#required' => TRUE,
+    '#options' => array(
+      'oneline' => t('Name (single line)'),
+      'full' => t('Name (First name, Last name)'),
+    ),
+  );
+  return $form;
+}
+
+/**
+ * Payment method callback: submit form.
+ */
+function commerce_maksuturva_submit_form($payment_method, $pane_values, $checkout_pane, $order) {
+  $form = array();
+  // TODO: This avoids a notice message about undefined payment_details index. We need to find better solution for that.
+  $form['empty'] = array(
+    '#type' => 'hidden',
+    '#default_value' => '',
+  );
+  return $form;
+}
+
+/**
+ * Payment method callback: submit form submission.
+ */
+function commerce_maksuturva_submit_form_submit($payment_method, $pane_form, $pane_values, $order, $charge) {
+  $order->data['commerce_maksuturva'] = $pane_values;
+  $transaction = commerce_maksuturva_transaction($payment_method, $order, $charge);
+  $order->data['commerce_maksuturva']['transaction'] = $transaction;
+
+  // Create a scheduled job for each order. It will be used to check the payment status from Maksuturva
+  $job = array(
+    'id' => $transaction->transaction_id,
+    'type' => 'transaction',
+    'created' => time(),
+    'period' => 5, // Status is checked as soon as next cron will run, we will update this later
+    'periodic' => TRUE,
+  );
+
+  // Check that job doesn't exist already
+  if(!JobScheduler::get('commerce_maksuturva_check_payments')->check($job)) {
+    watchdog('commerce_maksuturva', 'New JobScheduler created');
+    JobScheduler::get('commerce_maksuturva_check_payments')->set($job);
+  }
+  else {
+    watchdog('commerce_maksuturva', 'Job already exists, dont create another one');
+  }
+}
+
+/**
+ * Payment method callback for redirect form.
+ */
+function commerce_maksuturva_redirect_form($form, &$form_state, $order, $payment_method) {
+  if(empty($payment_method['settings']['seller_id'])) {
+    drupal_set_message(t('You have not configured Maksuturva payments. Using test account values. !link.', array('!link' => l(t('Add configuration'), 'admin/commerce/config/payment-methods/manage/commerce_payment_commerce_maksuturva/edit/3'))));
+    $payment_method['settings']['seller_id'] = MAKSUTURVA_TEST_SELLER_ID;
+    $payment_method['settings']['private'] = MAKSUTURVA_TEST_PRIVATE_KEY;
+  }
+
+  $form_elements = _commerce_maksuturva_build_transaction($order, $payment_method);
+  $host = _commerce_maksuturva_get_setting('service_host', $payment_method);
+
+  // Build the form array
+  $form = array(
+    '#action' => $host . 'NewPaymentExtended.pmt',
+    '#attributes' => array(
+      'accept-charset' => 'UTF-8',
+    ),
+  );
+  foreach($form_elements as $key => $value) {
+    $form[$key] = array(
+      '#type' => 'hidden',
+      '#value' => $value,
+    );
+  }
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t("Pay"),
+    '#weight' => 10,
+  );
+  return $form;
+}
+
+/**
+ * Payment method callback for redirect form validation. Gets called
+ * when user comes back from offsite payment.
+ */
+function commerce_maksuturva_redirect_form_validate($order, $payment_method) {
+  // Log validation request
+  watchdog('commerce_maksuturva', 'Received callback for redirect validation with $_REQUEST: <pre>!request</pre>', array('!request' => check_plain(print_r($_REQUEST, 1))), WATCHDOG_INFO);
+
+  // Load fresh copy of $order and save $_REQUEST data
+  if ($order = commerce_order_load($order->order_id)) {
+    $order->data['commerce_maksuturva']['response'] = $_REQUEST;
+    commerce_order_save($order);
+  }
+
+  // Select validation mode based on transaction return status code
+  if(arg(5) == 'delayed') {
+    // Just check some basic info from response
+    if(empty($_REQUEST['pmt_id'])) {
+      drupal_set_message(t('Payment has failed. Return data does not contain payment id.'), 'error');
+      $failure = TRUE;
+    }
+  }
+  // Else we'll just skip rest of the validation
+  elseif(arg(5) == 'success') {
+    // Validate response fields with hash
+    $hash_elements = array(
+      'pmt_action',
+      'pmt_version',
+      'pmt_id',
+      'pmt_reference',
+      'pmt_amount',
+      'pmt_currency',
+      'pmt_sellercosts',
+      'pmt_paymentmethod',
+      'pmt_escrow',
+      'pmt_version',
+    );
+    foreach($hash_elements as $key => $element) {
+      $hash_elements[$element] = check_plain($_GET[$element]);
+      unset($hash_elements[$key]);
+    }
+    $hash_elements['private'] = _commerce_maksuturva_get_setting('private', $payment_method);
+
+    // Generate hash with md5, convert to uppercase
+    $hash = strtoupper(md5(implode('&', $hash_elements) . '&'));
+
+    // Check hash validity
+    if($hash != check_plain($_GET['pmt_hash'])) {
+      drupal_set_message(t('Validation failed (security hash mismatch). Please contact store administration if the problem persists.'), 'error');
+      $failure = TRUE;
+    }
+
+    // Double check that paid amount matches order total amount
+    $order_amount = number_format($order->data['commerce_maksuturva']['transaction']->amount / 100, 2, ',', '');
+    if($order_amount != check_plain($_GET['pmt_amount'])) {
+      drupal_set_message(t('Paid amount does not match order total amount. Please contact store administration.'), 'error');
+      $failure = TRUE;
+    }
+  }
+  // If return status is unknown
+  else {
+    drupal_set_message(t('Payment returned with unknown status. Please contact store administration if the problem persists.'), 'error');
+    $failure = TRUE;
+  }
+  // If any errors were detected, set payment status to failure and terminate
+  if(isset($failure)) {
+    $transaction = commerce_payment_transaction_load($order->data['commerce_maksuturva']['transaction']->transaction_id);
+    $transaction->status = COMMERCE_PAYMENT_STATUS_FAILURE;
+    commerce_payment_transaction_save($transaction);
+    return FALSE;
+  }
+  // If we're good to go this far, proceed to submit function
+  return TRUE;
+}
+
+/**
+ * Payment method callback for redirect form submission.
+ */
+function commerce_maksuturva_redirect_form_submit($order, $payment_method) {
+  $transaction = commerce_payment_transaction_load($order->data['commerce_maksuturva']['transaction']->transaction_id);
+
+  // Set payment status based on transaction return status code
+  if(arg(5) == 'delayed') {
+    // Payment wasn't verified instantly, so we need to check the status from
+    // Maksuturva later
+    drupal_set_message(t('Instant payment couldn\'t be verified at this time. You will receive a message when payment has been verified.'));
+    $transaction->remote_status = MAKSUTURVA_TRANSACTION_STATUS_DELAYED;
+  }
+  if(arg(5) == 'success') {
+    // Instant payment succesful in Maksuturva, set transaction status to
+    // success
+    $transaction->status = COMMERCE_PAYMENT_STATUS_SUCCESS;
+  }
+  commerce_payment_transaction_save($transaction);
+}
+
+function _commerce_maksuturva_build_transaction($order, $payment_method) {
+  global $user;
+  $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
+
+  // Get billing address information
+  $billing_address = _commerce_maksuturva_get_address_from_setting('billing_address', $payment_method, $order_wrapper);
+
+  // If delivery address is set to be same as billing address, do that
+  if (!_commerce_maksuturva_get_setting('delivery_address', $payment_method)) {
+    $delivery_address = $billing_address;
+  }
+  else {
+    $delivery_address = _commerce_maksuturva_get_address_from_setting('delivery_address', $payment_method, $order_wrapper);
+    $delivery_address = $delivery_address ? $delivery_address : $billing_address;
+  }
+
+  // Build required transaction form elements in array
+  $form_elements = array(
+    'pmt_action' => 'NEW_PAYMENT_EXTENDED',
+    'pmt_version' => '0004',
+    'pmt_sellerid' => _commerce_maksuturva_get_setting('seller_id', $payment_method),
+    'pmt_selleriban' => _commerce_maksuturva_get_setting('seller_iban', $payment_method), // Placeholder, this will be removed if null
+    'pmt_id' => $order->data['commerce_maksuturva']['transaction']->transaction_id,
+    'pmt_orderid' => $order->order_id,
+    'pmt_reference' => _commerce_maksuturva_calculate_reference_number($order, $payment_method),
+    'pmt_duedate' => date('d.m.Y'),
+    'pmt_userlocale' => _commerce_maksuturva_get_setting('locale', $payment_method),
+    'pmt_amount' => number_format($order->data['commerce_maksuturva']['transaction']->amount / 100, 2, ',', ''),
+    'pmt_currency' => 'EUR',
+    'pmt_okreturn' => url('checkout/' . $order->order_id . '/payment/return/' . $order->data['payment_redirect_key'] . '/success', array('absolute' => TRUE)),
+    'pmt_errorreturn' => url('checkout/' . $order->order_id . '/payment/return/' . $order->data['payment_redirect_key'] . '/error', array('absolute' => TRUE)),
+    'pmt_cancelreturn' => url('checkout/' . $order->order_id . '/payment/back/' . $order->data['payment_redirect_key'] . '/cancel', array('absolute' => TRUE)),
+    'pmt_delayedpayreturn' => url('checkout/' . $order->order_id . '/payment/return/' . $order->data['payment_redirect_key'] . '/delayed', array('absolute' => TRUE)),
+    'pmt_escrow' => 'Y', // We'll override this later, if account type is emaksut
+    'pmt_escrowchangeallowed' => 'N',
+    'pmt_buyername' => substr(_commerce_maksuturva_get_name($billing_address, $payment_method), 0, 40),
+    'pmt_buyeraddress' => substr($billing_address['thoroughfare'], 0, 40),
+    'pmt_buyerpostalcode' => substr($billing_address['postal_code'], 0, 5),
+    'pmt_buyercity' => substr($billing_address['locality'], 0, 40),
+    'pmt_buyercountry' => substr($billing_address['country'], 0, 2),
+    'pmt_buyeremail' => substr(isset($user->mail) ? $user->mail : $order->mail, 0, 40),
+    'pmt_deliveryname' => substr(_commerce_maksuturva_get_name($delivery_address, $payment_method), 0, 40),
+    'pmt_deliveryaddress' => substr($delivery_address['thoroughfare'], 0, 40),
+    'pmt_deliverypostalcode' => substr($delivery_address['postal_code'], 0, 5),
+    'pmt_deliverycity' => substr($delivery_address['locality'], 0, 40),
+    'pmt_deliverycountry' => substr($delivery_address['country'], 0, 2),
+    'pmt_sellercosts' => '0,00', // TODO: Make fees configurable
+    'pmt_rows' => count($order_wrapper->commerce_line_items->value()),
+    'pmt_charset' => 'UTF-8',
+    'pmt_charsethttp' => 'UTF-8',
+    'pmt_hashversion' => 'MD5',
+    'pmt_keygeneration' => _commerce_maksuturva_get_setting('keygeneration', $payment_method),
+  );
+
+  // Set some variables based on Maksuturva account type
+  if (!empty($payment_method['settings']['account_type']) && $payment_method['settings']['account_type'] == 'emaksut') {
+    $form_elements['pmt_escrow'] = 'N';
+  }
+
+  // Remove fields that don't have a value. This will confuse Maksuturva otherwise.
+  foreach($form_elements as $key => $value) {
+    if(empty($value)) {
+      unset($form_elements[$key]);
+    }
+  }
+
+  // Append each line item to form elements
+  foreach ($order_wrapper->commerce_line_items as $delta => $line_item_wrapper) {
+    $element_tmp = array(
+      'pmt_row_name' => $line_item_wrapper->line_item_label->value(),
+      // TODO: Separate line item description from name
+      'pmt_row_desc' => $line_item_wrapper->line_item_label->value(),
+      'pmt_row_quantity' => round($line_item_wrapper->quantity->value()),
+      'pmt_row_deliverydate' => date('d.m.Y'), // TODO: Should this field be unified with order delivery date?
+      //'pmt_row_price_gross' => number_format($line_item_wrapper->commerce_unit_price->amount->value() / 100, 2, ',', ''), // TODO: This price should include VAT
+      'pmt_row_price_net' => number_format($line_item_wrapper->commerce_unit_price->amount->value() / 100, 2, ',', ''),
+      'pmt_row_vat' => '0,00', // TODO: Check how to get VAT percent for each line item
+      'pmt_row_discountpercentage' => '0,00', // TODO: Make compatible with some discount module
+      'pmt_row_type' => '1',
+    );
+    // TODO: Implement line item types (1=product, 2=shipping fees, 3=handling fees, 4=customized product (non-returnable), 5=service, 6=discount)
+    // If line item price is negative, set product type to discount
+    if($line_item_wrapper->commerce_unit_price->amount->value() < 0) {
+      $element_tmp['pmt_row_type'] = '6';
+    }
+    else {
+      $element_tmp['pmt_row_type'] = '1';
+    }
+
+    foreach ($element_tmp as $key => $value) {
+      $form_elements[$key . ($delta + 1)] = $value;
+    }
+  }
+
+  // Allow modules to alter the elements for tailored cases
+  $context = array(
+    'order' => $order,
+    'order_wrapper' => $order_wrapper,
+    'payment_method' => $payment_method,
+  );
+  drupal_alter('commerce_maksuturva_build_transaction', $form_elements, $context);
+
+  // Calculate hash
+  $form_elements['pmt_hash'] = _commerce_maksuturva_calculate_payment_hash($form_elements, _commerce_maksuturva_get_setting('private', $payment_method));
+
+  return $form_elements;
+}
+
+/**
+ * Declare job scheduling holding items that need to be run periodically.
+ */
+function commerce_maksuturva_cron_job_scheduler_info() {
+  $schedulers = array();
+  $schedulers['commerce_maksuturva_check_payments'] = array(
+    'worker callback' => 'commerce_maksuturva_check_payment',
+  );
+  return $schedulers;
+}
+
+/**
+ * Job scheduler worker function to check status for each uncompleted order
+ */
+function commerce_maksuturva_check_payment($job) {
+
+  // Ensure that job is correct type
+  if ($job['type'] != 'transaction') {
+    watchdog('commerce_maksuturva', 'Payment status check failed. Wrong job type "%job_type".', array('%job_type' => $job['type']), WATCHDOG_ERROR);
+    return;
+  }
+
+  // Ensure that job has an ID for transaction
+  if (!$job['id']) {
+    watchdog('commerce_maksuturva', 'Payment status check failed. No job ID defined in job item %id.', array('%id' => $job['item_id']), WATCHDOG_ERROR);
+    return;
+  }
+
+  // Load transaction
+  $transaction = commerce_payment_transaction_load($job['id']);
+
+  // Make status query
+  if (!$response_xml = _commerce_maksuturva_status_query($transaction)) {
+    // Something went wrong during the query, we don't proceed from
+    // here then...
+    return;
+  }
+
+  // Process return data.
+  $existing_transaction = clone $transaction;
+
+  // Store remote status to transaction
+  $transaction->remote_status = $response_xml->pmtq_returncode;
+  $transaction->message = 'Remote: ' . $response_xml->pmtq_returntext;
+
+  // Update scheduled job
+  $job['period'] = 3600; // Check status once an hour from this on
+  JobScheduler::get('commerce_maksuturva_check_payments')->set($job);
+
+  // Do certain actions based on return code.
+  // Codes mean:
+  //   - 00: Exception. No payment found with specified data.
+  //   - 01: Exception. Failed getting payment with specified data.
+  //   - 20: Payment has been done, order has been delivered.
+  //   - 30: Payment has been done, delivery not initiated yet.
+  //   - 40: Payment is paid to merchant account, all ok.
+  switch($response_xml->pmtq_returncode) {
+
+    // Payment is paid to merchant account, all ok.
+    case '40':
+      JobScheduler::get('commerce_maksuturva_check_payments')->remove($job);
+    break;
+
+    // When transaction status is success
+    case '30':
+    case '20':
+      $transaction->status = COMMERCE_PAYMENT_STATUS_SUCCESS;
+    break;
+
+    // When transaction status is failed
+    case '01':
+    case '00':
+      $transaction->status = COMMERCE_PAYMENT_STATUS_FAILURE;
+      JobScheduler::get('commerce_maksuturva_check_payments')->remove($job);
+    break;
+
+    // TODO: Add support for more response codes: cancellations, discounts etc...
+  }
+
+  // Save transaction and order if status changed
+  if($existing_transaction->status != $transaction->status || $existing_transaction->remote_status != $transaction->remote_status) {
+    commerce_payment_transaction_save($transaction);
+
+    // Log status change
+    watchdog('commerce_maksuturva', 'Transaction status updated in Maksuturva. Old transaction: <pre>!existing_transaction</pre> Updated transaction: <pre>!transaction</pre>', array('!existing_transaction' => check_plain(print_r($existing_transaction, 1)), '!transaction' => check_plain(print_r($transaction, 1))), WATCHDOG_INFO);
+  }
+}
+
+/**
+ * Creates an example payment transaction for the specified charge amount.
+ *
+ * @param $payment_method
+ *   The payment method instance object used to charge this payment.
+ * @param $order
+ *   The order object the payment applies to.
+ * @param $charge
+ *   An array indicating the amount and currency code to charge.
+ */
+function commerce_maksuturva_transaction($payment_method, $order, $charge) {
+  $transaction = commerce_payment_transaction_new('commerce_maksuturva', $order->order_id);
+  $transaction->instance_id = $payment_method['instance_id'];
+  $transaction->amount = $charge['amount'];
+  $transaction->currency_code = $charge['currency_code'];
+  $transaction->status = COMMERCE_PAYMENT_STATUS_PENDING;
+  commerce_payment_transaction_save($transaction);
+  return $transaction;
+}
+
+/**
+ * Generate a reference number for each payment based on order_id
+ */
+function _commerce_maksuturva_calculate_reference_number($order, $payment_method) {
+  // Add reference base number in the beginning of the reference number
+  $reference_base = _commerce_maksuturva_get_setting('reference_base', $payment_method);
+  $tmpStr = (string) $reference_base . $order->order_id;
+  $tmpMultip = array(7, 3, 1);
+  $tmpSum = 0;
+  $tmpIndex = 0;
+  for ($i = strlen($tmpStr) - 1; $i >= 0; $i--) {
+    $tmpSum += intval(substr($tmpStr, $i, 1)) * intval($tmpMultip[$tmpIndex % 3]);
+    $tmpIndex++;
+  }
+  $nextTen = ceil(intval($tmpSum) / 10) * 10;
+  return $tmpStr . (string) (abs($nextTen-$tmpSum));
+}
+
+/**
+ * Return payment method settings
+ */
+function _commerce_maksuturva_get_setting($setting_name, $payment_method) {
+  switch($setting_name) {
+    // Production or test environment
+    case 'service_host':
+      if(!empty($payment_method['settings']['mode'])) {
+        $setting = $payment_method['settings']['mode'] == 'test' ? 'http://test1.maksuturva.fi/' : 'https://www.maksuturva.fi/';
+      }
+      else {
+        $setting = 'https://www.maksuturva.fi/';
+      }
+    break;
+    // Secret key
+    case 'private':
+      $setting = !empty($payment_method['settings']['private']) ? $payment_method['settings']['private'] : MAKSUTURVA_TEST_PRIVATE_KEY;
+    break;
+    // Seller ID
+    case 'seller_id':
+      $setting = !empty($payment_method['settings']['seller_id']) ? $payment_method['settings']['seller_id'] : MAKSUTURVA_TEST_SELLER_ID;
+    break;
+    // Seller IBAN account
+    case 'seller_iban':
+      $setting = !empty($payment_method['settings']['seller_iban']) ? $payment_method['settings']['seller_iban'] : '';
+    break;
+    // Reference number base
+    case 'reference_base':
+      $setting = !empty($payment_method['settings']['reference_base']) ? $payment_method['settings']['reference_base'] : MAKSUTURVA_DEFAULT_REFERENCE_BASE;
+    break;
+    // Key generation
+    case 'keygeneration':
+      $setting = !empty($payment_method['settings']['keygeneration']) ? $payment_method['settings']['keygeneration'] : MAKSUTURVA_DEFAULT_KEYGENERATION;
+    break;
+    // User locale
+    case 'locale':
+      $setting = !empty($payment_method['settings']['locale']) ? $payment_method['settings']['locale'] : MAKSUTURVA_DEFAULT_LOCALE;
+    break;
+    // Billing address
+    case 'billing_address':
+      $setting = !empty($payment_method['settings']['billing_address']) ? $payment_method['settings']['billing_address'] : '';
+    break;
+    // Delivery address
+    case 'delivery_address':
+      $setting = !empty($payment_method['settings']['delivery_address']) ? $payment_method['settings']['delivery_address'] : '';
+    break;
+    // Name format handler
+    case 'name_format_handler':
+      $setting = !empty($payment_method['settings']['name_format_handler']) ? $payment_method['settings']['name_format_handler'] : MAKSUTURVA_DEFAULT_NAME_FORMAT_HANDLER;
+    break;
+  }
+  return $setting;
+}
+
+/**
+ * Helper function for getting options list for available address fields in
+ * customer profiles used in Commerce.
+ *
+ * @return
+ *   Array value list for FAPI's options field elements.
+ */
+function _commerce_maksuturva_get_address_options() {
+  $options = array();
+
+  // Customer profiles
+  $customer_profile_instances = field_info_instances('commerce_order', 'commerce_order');
+  foreach ($customer_profile_instances as $customer_profile_field_name => $profile_instance) {
+    $customer_profile_field = field_info_field($customer_profile_field_name);
+    if ($customer_profile_field['type'] == 'commerce_customer_profile_reference') {
+
+      // Address
+      $address_instances = field_info_instances('commerce_customer_profile', $customer_profile_field['settings']['profile_type']);
+      foreach ($address_instances as $address_field_name => $address_instance) {
+        $address_field = field_info_field($address_field_name);
+        if ($address_field['type'] == 'addressfield') {
+
+          // Finally set option element
+          $options[$customer_profile_field_name . ':' . $address_field_name] = $profile_instance['label'] . ' » ' . $address_instance['label'];
+
+        }
+      }
+
+    }
+  }
+
+  return $options;
+}
+
+/**
+ * Helper function which returns address information based on given setting.
+ */
+function _commerce_maksuturva_get_address_from_setting($setting_name, $payment_method, $order_wrapper) {
+  $setting = _commerce_maksuturva_get_setting($setting_name, $payment_method);
+  list($customer_profile, $address_field) = explode(":", $setting);
+  if (isset($order_wrapper->{$customer_profile}->{$address_field})) {
+    return $order_wrapper->{$customer_profile}->{$address_field}->value();
+  }
+  return FALSE;
+}
+
+/**
+ * Helper function which returns the name based on given address field.
+ */
+function _commerce_maksuturva_get_name($address, $payment_method) {
+  $name_format_handler = _commerce_maksuturva_get_setting('name_format_handler', $payment_method);
+  $name = '';
+  switch ($name_format_handler) {
+    case 'full':
+      $name = sprintf('%s %s', $address['first_name'], $address['last_name']);
+      break;
+    default:
+    case 'oneline':
+      $name = $address['name_line'];
+      break;
+  }
+  return $name;
+}
+
+/**
+ * Helper function for calculating payment hash from from elements.
+ *
+ * @param $form_elements
+ *   Array list of form elements.
+ * @param $private_key
+ *   String private key which is used when calculating the hash.
+ * @return
+ *   MD5 hash string.
+ */
+function _commerce_maksuturva_calculate_payment_hash($form_elements, $private_key) {
+  $hash_elements = $form_elements;
+  // Remove elements that are not used in hash calculation
+  unset($hash_elements['pmt_sellerid']);
+  unset($hash_elements['pmt_userlocale']);
+  unset($hash_elements['pmt_rows']);
+  unset($hash_elements['pmt_buyeremail']);
+  unset($hash_elements['pmt_charset']);
+  unset($hash_elements['pmt_charsethttp']);
+  unset($hash_elements['pmt_hashversion']);
+  unset($hash_elements['pmt_keygeneration']);
+  $hash_elements['private'] = $private_key;
+  return md5(implode('&', $hash_elements) . '&');
+}
+
+/**
+ * Helper function for querying status of an transaction.
+ *
+ * @param $transaction
+ *   Transaction object returned by
+ *   commerce_payment_transaction_load() method.
+ * @return bool|SimpleXMLElement
+ *   Boolean FALSE on failure. SimpleXMLElement object on success.
+ */
+function _commerce_maksuturva_status_query($transaction) {
+
+  // Make sure that rules still exists
+  list($rule_method_id, $rule_name) = explode('|', $transaction->instance_id);
+  if (!rules_config_load($rule_name)) {
+    watchdog('commerce_maksuturva', 'Payment status check failed. Rule %rule_name could not be loaded.', array('%rule_name' => $rule_name), WATCHDOG_ERROR);
+    return FALSE;
+  }
+
+  // Load payment method
+  $payment_method = commerce_payment_method_instance_load($transaction->instance_id);
+
+  $private_key = _commerce_maksuturva_get_setting('private', $payment_method);
+  $request = array(
+    'pmtq_action' => 'PAYMENT_STATUS_QUERY',
+    'pmtq_version' => '0004',
+    'pmtq_sellerid' => _commerce_maksuturva_get_setting('seller_id', $payment_method),
+    'pmtq_id' => $transaction->transaction_id,
+    'pmtq_resptype' => 'XML',
+    'pmtq_hashversion' => 'MD5',
+    'pmtq_keygeneration' => _commerce_maksuturva_get_setting('keygeneration', $payment_method),
+  );
+  // TODO: Make hash calculation for this request too
+  $request['pmtq_hash'] = md5($request['pmtq_action'] . '&' . $request['pmtq_version'] . '&' . $request['pmtq_sellerid'] . '&' . $request['pmtq_id'] . '&' . $private_key . '&');
+
+  // Build the http request and execute
+  $host = _commerce_maksuturva_get_setting('service_host', $payment_method);
+  $request_url = url($host . 'PaymentStatusQuery.pmt', array('query' => $request));
+  $response = drupal_http_request($request_url);
+
+  // Convert response to XML object, response data seems to be in ISO-8859-1 so we need to convert it first
+  $response_xml = new SimpleXMLElement(drupal_convert_to_utf8($response->data, 'ISO-8859-1'));
+
+  // Check response data hash validity
+  $hash_elements = array(
+    'pmtq_action' => $response_xml->pmtq_action,
+    'pmtq_version' => $response_xml->pmtq_version,
+    'pmtq_sellerid' => $response_xml->pmtq_sellerid,
+    'pmtq_id' => $response_xml->pmtq_id,
+    'pmtq_amount' => $response_xml->pmtq_amount,
+    'pmtq_returncode' => $response_xml->pmtq_returncode,
+    'pmtq_returntext' => $response_xml->pmtq_returntext,
+    'pmtq_sellercosts' => $response_xml->pmtq_sellercosts,
+    'pmtq_paymentmethod' => $response_xml->pmtq_paymentmethod,
+    'pmtq_escrow' => $response_xml->pmtq_escrow,
+  );
+  $hash_elements['private'] = $private_key;
+
+  // Remove empty parts from hash
+  foreach($hash_elements as $key => $value) {
+    if(empty($value)) {
+      unset($hash_elements[$key]);
+    }
+  }
+  $hash = strtoupper(md5(implode('&', $hash_elements) . '&'));
+
+  // Compare hash. If not valid, log the error and stop here.
+  if($response_xml->pmtq_hash != $hash) {
+    watchdog('commerce_maksuturva', 'Payment status check failed. Hash mismatch.', WATCHDOG_WARNING);
+    return FALSE;
+  }
+
+  return $response_xml;
+}

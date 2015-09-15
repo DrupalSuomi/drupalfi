@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Drupal.fi Commerce feature.
+ */
+
+include_once 'drupalfi_commerce.features.inc';
