@@ -6,6 +6,10 @@ Drupal.fi public repository
 
 CHANGELOG:
 
+DEV
+---
+- Updated Drupal core to version 7.39
+
 1.01 2015-05-27
 ---------------
 - Updated routes.yaml
