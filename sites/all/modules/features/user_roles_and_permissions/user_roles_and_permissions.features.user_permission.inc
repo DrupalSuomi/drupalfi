@@ -39,6 +39,18 @@ function user_roles_and_permissions_user_default_permissions() {
     'module' => 'views',
   );
 
+  // Exported permission: 'access checkout'.
+  $permissions['access checkout'] = array(
+    'name' => 'access checkout',
+    'roles' => array(
+      'Administrator' => 'Administrator',
+      'Content creator' => 'Content creator',
+      'anonymous user' => 'anonymous user',
+      'authenticated user' => 'authenticated user',
+    ),
+    'module' => 'commerce_checkout',
+  );
+
   // Exported permission: 'access comments'.
   $permissions['access comments'] = array(
     'name' => 'access comments',

@@ -1,0 +1,107 @@
+<?php
+/**
+ * @file
+ * Code for the Drupal.fi Commerce feature.
+ */
+
+include_once 'drupalfi_commerce.features.inc';
+
+/**
+ * Implements hook_commerce_checkout_page_info().
+ */
+function drupalfi_commerce_commerce_checkout_page_info() {
+  $checkout_pages = array();
+
+  // Lets declare an checkout page for entering annual membership information.
+  $checkout_pages['membership'] = array(
+    'name' => t('Membership'),
+    'title' => t('Membership information'),
+    'weight' => 5,
+  );
+
+  return $checkout_pages;
+}
+
+/**
+ * Implements hook_commerce_customer_profile_type_info().
+ */
+function drupalfi_commerce_commerce_customer_profile_type_info() {
+  $profile_types = array();
+
+  // Specify customer type which holds the information for annual membership of
+  // Finnish Drupal Association.
+  $profile_types['membership'] = array(
+    'type' => 'membership',
+    'name' => t('Membership information'),
+    'description' => t('The profile used to collect annual membership information on the checkout and order forms.'),
+  );
+
+  return $profile_types;
+}
+
+/**
+ * Implements hook_commerce_checkout_pane_info_alter().
+ */
+function drupalfi_commerce_commerce_checkout_pane_info_alter(&$checkout_panes) {
+  // When membership customer profile pane is set, change its default page.
+  if (isset($checkout_panes['customer_profile_membership'])) {
+    $checkout_panes['customer_profile_membership']['page'] = 'membership';
+  }
+}
+
+/**
+ * Implements hook_commerce_checkout_router().
+ */
+function drupalfi_commerce_commerce_checkout_router($order, $checkout_page) {
+  // Redirect to next page if we're in membership page without any membership
+  // products in the order.
+  if ($checkout_page['page_id'] == 'membership' &&
+      !drupalfi_commerce_has_membership_products($order)) {
+    $order = commerce_order_status_update($order, 'checkout_' . $checkout_page['next_page']);
+    drupal_goto('checkout/' . $order->order_id . '/' . $checkout_page['next_page']);
+  }
+}
+
+/**
+ * Does this order have membership products in it?
+ *
+ * @param $order
+ *   The order object returned by commerce_order_load().
+ * @return boolean
+ *   TRUE indicating that given order contains membership products, FALSE
+ *   indicates for not finding any membership products in the order.
+ */
+function drupalfi_commerce_has_membership_products($order) {
+  $commerce_order_wrapper = entity_metadata_wrapper('commerce_order', $order);
+  if ($commerce_order_wrapper) {
+    foreach ($commerce_order_wrapper->commerce_line_items as $commerce_line_item) {
+      if ($commerce_line_item->commerce_product->type->value() == 'membership') {
+        return TRUE;
+      }
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * Implements hook_commerce_product_type_info().
+ */
+function drupalfi_commerce_commerce_product_type_info() {
+  $product_types = array();
+
+  // This is used only when visitors wants the annual memberhip
+  $product_types['membership'] = array(
+    'type' => 'membership',
+    'name' => t('Membership'),
+    'description' => t('Annual Finnish Drupal Association membership.'),
+  );
+
+  // This is used for selling tickets to events
+  $product_types['ticket'] = array(
+    'type' => 'ticket',
+    'name' => t('Ticket'),
+    'description' => t('Tickets to any type of event sold by Finnish Drupal Association.'),
+  );
+
+  return $product_types;
+}

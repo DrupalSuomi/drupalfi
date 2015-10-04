@@ -1,0 +1,44 @@
+<?php
+/**
+ * @file
+ * Takes care of installation tasks of Comemrce Maksuturva module.
+ */
+
+/**
+ * Convert order basis job schedulers to be transaction basis.
+ */
+function commerce_maksuturva_update_7100(&$sandbox) {
+
+  // Get list of current jobs
+  $jobs = db_select('job_schedule', 'js')
+          ->fields('js', array('id'))
+          ->condition('name', 'commerce_maksuturva_check_payments')
+          ->condition('type', 'order')
+          ->execute()
+          ->fetchAllAssoc('id');
+  // Loop thru order jobs
+  $order_ids = array();
+  foreach ($jobs as $job) {
+    $order_ids[] = $job->id;
+  }
+
+  // Now load all orders and create new jobs based on their transaction
+  $orders = commerce_order_load_multiple($order_ids);
+  foreach ($orders as $order) {
+    $transaction_id = $order->data['commerce_maksuturva']['transaction']->transaction_id;
+    // Transaction id must be set
+    if($transaction_id) {
+      $job = array(
+        'id' => $transaction_id,
+        'type' => 'transaction',
+        'created' => time(),
+        'period' => 5, // Status is checked as soon as next cron will run, we will update this later
+        'periodic' => TRUE,
+      );
+      JobScheduler::get('commerce_maksuturva_check_payments')->set($job);
+    }
+  }
+
+  // Now remove all order jobs
+  JobScheduler::get('commerce_maksuturva_check_payments')->removeAll('order');
+}
