@@ -105,15 +105,3 @@ function drupalfi_commerce_commerce_product_type_info() {
 
   return $product_types;
 }
-
-/**
- * Implements hook_default_rules_configuration_alter().
- */
-function drupalfi_commerce_default_rules_configuration_alter(&$configs) {
-  // Disable order confirmation email, as it is too eCommerce like generic
-  // confirmation only in english. We're going to configure from UI an product
-  // specific email confirmations.
-  if (isset($configs['commerce_checkout_order_email'])) {
-    $configs['commerce_checkout_order_email']->active = FALSE;
-  }
-}
