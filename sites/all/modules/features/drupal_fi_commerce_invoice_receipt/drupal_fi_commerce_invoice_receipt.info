@@ -1,0 +1,10 @@
+name = Drupal.fi - Commerce Invoice Receipt
+description = Provides invoice/receipt functionality for Drupal.fi Commerce
+core = 7.x
+package = drupalfi
+dependencies[] = commerce_invoice_receipt
+dependencies[] = drupalfi_commerce
+dependencies[] = emogrifier
+dependencies[] = libraries
+features[features_api][] = api:2
+project path = sites/all/modules/features
