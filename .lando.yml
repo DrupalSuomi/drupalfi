@@ -1,13 +1,62 @@
 name: drupalfi
+recipe: drupal9
+
+env_file:
+  - credentials.env
+
+# Use the same versions here that are used on the production server.
 config:
-  id: DRUPALFI
-  # This section overrides Platform.sh configuration with values that make more
-  # sense for local development.
-  #
-  # Note that "app" is the name of the application defined in your
-  # .platform.app.yaml or applications.yaml.
-  overrides:
-    app:
-      variables:
-        env:
-          APP_ENV: 'dev'
+  php: '8.0'
+  via: nginx
+  webroot: web
+  database: mariadb:10.3
+  # enable later if actually needed.
+  xdebug: false
+  config:
+    vhosts: lando/config/lando.conf
+
+services:
+  appserver:
+    build:
+      # Install Platform.sh.
+      - /bin/sh -c "touch ~/.bashrc"
+      - curl -sS https://platform.sh/cli/installer | php
+      # Make custom scripts executable.
+      # - chmod a+x /app/lando/scripts/update-local-site.sh
+    run:
+      - composer install
+  rediscache:
+    type: redis:6
+
+tooling:
+  drush:
+    service: appserver
+    options:
+      uri:
+        passthrough: true
+        default: https://drupalfi.lndo.site
+
+  platform:
+    service: appserver
+    description: Run Platform CLI commands
+    cmd: /var/www/.platformsh/bin/platform
+
+  update-local-site:
+    service: appserver
+    description: Update DBs and sync files
+    cmd: /app/lando/scripts/update-local-site.sh
+
+  phpcs:
+    service: appserver
+    description: Run PHP Code Sniffer
+    cmd: cd /app/web && /app/vendor/bin/phpcs
+
+  phpcbf:
+    service: appserver
+    description: Run PHP Code Beautifier and Fixer
+    cmd: cd /app/web && /app/vendor/bin/phpcbf
+
+  phpunit:
+    service: appserver
+    description: "Run PHP Unit tests: lando phpunit"
+    cmd: /app/vendor/bin/phpunit

@@ -1,0 +1,15 @@
+<?php
+
+/**
+ * @file
+ * Dummy hooks for test examples.
+ */
+
+use Drupal\dummy_test_module\Entity\User;
+
+/**
+ * Implements hook_entity_type_alter().
+ */
+function dummy_test_module_entity_type_alter(array &$entity_types) {
+  $entity_types['user']->setClass(User::class);
+}

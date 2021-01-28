@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="drupal-8-defaults">
+  <description>PHP CodeSniffer configuration for Drupal code style inspection</description>
+
+  <file>./modules/custom</file>
+  <file>./themes/custom</file>
+  <exclude-pattern>*/node_modules/*</exclude-pattern>
+  <exclude-pattern>*/vendor/*</exclude-pattern>
+  <exclude-pattern>*/pattern-lab/core/*</exclude-pattern>
+  <exclude-pattern>pl_*.php</exclude-pattern>
+  <exclude-pattern>*.css</exclude-pattern>
+  <exclude-pattern>*.md</exclude-pattern>
+  <arg name="extensions" value="php,module,inc,install,test,profile,theme,info"/>
+  <config name="drupal_core_version" value="8"/>
+
+  <rule ref="../vendor/drupal/coder/coder_sniffer/Drupal"/>
+  <rule ref="../vendor/drupal/coder/coder_sniffer/DrupalPractice"/>
+
+  <!-- Example how you would disable a rule you do not like:
+  <rule ref="PEAR.Functions.ValidDefaultValue.NotAtEnd">
+    <severity>0</severity>
+  </rule>
+  -->
+</ruleset>

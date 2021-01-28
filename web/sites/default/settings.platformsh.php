@@ -8,6 +8,10 @@ use Drupal\Core\Installer\InstallerKernel;
 
 $platformsh = new \Platformsh\ConfigReader\Config();
 
+if (!$platformsh->inRuntime()) {
+  return;
+}
+
 // Configure the database.
 if ($platformsh->hasRelationship('database')) {
   $creds = $platformsh->credentials('database');
@@ -98,7 +102,7 @@ if ($platformsh->inRuntime()) {
     $settings['file_temp_path'] = $platformsh->appDir . '/tmp';
   }
 
-// Configure the default PhpStorage and Twig template cache directories.
+  // Configure the default PhpStorage and Twig template cache directories.
   if (!isset($settings['php_storage']['default'])) {
     $settings['php_storage']['default']['directory'] = $settings['file_private_path'];
   }
