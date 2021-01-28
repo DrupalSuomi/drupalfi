@@ -1,0 +1,14 @@
+uuid: 421674ba-3c0d-460c-93a7-7fd6138d09f6
+name: 'Drupal.fi - Suomen Drupal-yhdistys'
+mail: contact@drupal.fi
+slogan: ''
+page:
+  403: ''
+  404: ''
+  front: /user/login
+admin_compact_mode: false
+weight_select_max: 100
+langcode: fi
+default_langcode: fi
+_core:
+  default_config_hash: yXadRE77Va-G6dxhd2kPYapAvbnSvTF6hO4oXiOEynI

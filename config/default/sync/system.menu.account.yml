@@ -1,0 +1,10 @@
+uuid: 7f20a199-147d-404a-b7c8-c6566dbb6379
+langcode: fi
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: M_Bh81osDyUQ4wV0GgU_NdBNqkzM87sLxjaCdFj9mnw
+id: account
+label: 'User account menu'
+description: 'Aktiiviseen käyttäjätiliin liittyvät linkit'
+locked: true

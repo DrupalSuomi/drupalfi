@@ -1,0 +1,12 @@
+uuid: 437e7463-ce86-463c-9e4e-ada23b835b62
+langcode: fi
+status: true
+dependencies:
+  module:
+    - user
+_core:
+  default_config_hash: flXhTcp55yLcyy7ZLOhPGKGZobZQJdkAFVWV3LseiuI
+id: user.register
+label: Rekisteröidy
+targetEntityType: user
+cache: true

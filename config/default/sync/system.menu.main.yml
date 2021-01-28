@@ -1,0 +1,10 @@
+uuid: 6986fc8f-5b26-42b3-951f-a42ef2d8dc3f
+langcode: fi
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: Q2Ra3jfoIVk0f3SjxJX61byRQFVBAbpzYDQOiY-kno8
+id: main
+label: 'Main navigation'
+description: 'Sivuston osioiden linkit'
+locked: true

@@ -1,0 +1,12 @@
+uuid: 44ce910f-ea10-4fd8-95d4-80c1e1dc010f
+langcode: fi
+status: true
+dependencies: {  }
+_core:
+  default_config_hash: dJ0L2DNSj5q6XVZAGsuVDpJTh5UeYkIPwKrUOOpr8YI
+id: authenticated
+label: 'Sisäänkirjautunut käyttäjä'
+weight: 1
+is_admin: false
+permissions:
+  - 'access content'

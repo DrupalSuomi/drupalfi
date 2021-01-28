@@ -1,0 +1,12 @@
+uuid: 4ae537b8-5838-4cdf-8005-aea4b18c86df
+langcode: fi
+status: false
+dependencies:
+  module:
+    - user
+_core:
+  default_config_hash: mQIF_foYjmnVSr9MpcD4CTaJE_FpO1AyDd_DskztGhM
+id: user.full
+label: Käyttäjätili
+targetEntityType: user
+cache: true
