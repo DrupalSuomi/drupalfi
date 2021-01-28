@@ -1,7 +1,0 @@
-<?php
-/**
- * @file
- * Code for the Sitewide cotext feature.
- */
-
-include_once 'sitewide_cotext.features.inc';

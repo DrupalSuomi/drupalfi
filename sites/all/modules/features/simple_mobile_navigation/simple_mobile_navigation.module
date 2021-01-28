@@ -1,7 +1,0 @@
-<?php
-/**
- * @file
- * Code for the Simple Mobile Navigation feature.
- */
-
-include_once 'simple_mobile_navigation.features.inc';

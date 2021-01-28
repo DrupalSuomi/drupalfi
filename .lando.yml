@@ -1,0 +1,13 @@
+name: drupalfi
+config:
+  id: DRUPALFI
+  # This section overrides Platform.sh configuration with values that make more
+  # sense for local development.
+  #
+  # Note that "app" is the name of the application defined in your
+  # .platform.app.yaml or applications.yaml.
+  overrides:
+    app:
+      variables:
+        env:
+          APP_ENV: 'dev'

@@ -1,7 +1,0 @@
-<?php
-/**
- * @file
- * Code for the Localization feature feature.
- */
-
-include_once 'localization_feature.features.inc';

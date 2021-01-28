@@ -1,5 +1,0 @@
-name = Drupal.fi Date Formats
-description = Creates date formats needed in Drupal.fi site
-version = 7.x-1.0
-core = 7.x
-package = Custom

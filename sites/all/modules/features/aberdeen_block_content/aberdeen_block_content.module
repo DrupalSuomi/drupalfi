@@ -1,7 +1,0 @@
-<?php
-/**
- * @file
- * Code for the Aberdeen block content feature.
- */
-
-include_once 'aberdeen_block_content.features.inc';

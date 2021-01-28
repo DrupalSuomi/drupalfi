@@ -1,5 +1,0 @@
-name = Drupal.fi Block Example
-description = Example module for building custom block with settings page.
-core = 7.x
-package = drupalfi
-configure = admin/config/custom_blocks/

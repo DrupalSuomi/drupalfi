@@ -1,7 +1,0 @@
-<?php
-/**
- * @file
- * Code for the Caching and Varnish feature.
- */
-
-include_once 'caching_and_varnish.features.inc';

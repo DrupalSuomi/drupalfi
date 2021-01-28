@@ -1,7 +1,0 @@
-<?php
-/**
- * @file
- * Code for the Liftup feature.
- */
-
-include_once 'liftup.features.inc';

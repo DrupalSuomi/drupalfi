@@ -1,5 +1,0 @@
-name = Drupal.fi Abedeen block
-description = Aberdeen clouds sponsor block
-core = 7.x
-package = drupalfi
-configure = admin/config/custom_blocks/

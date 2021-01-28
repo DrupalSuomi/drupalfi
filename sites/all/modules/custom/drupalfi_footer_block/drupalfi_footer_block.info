@@ -1,5 +1,0 @@
-name = Drupal.fi footer block
-description = Drupal.fi footer block feature
-core = 7.x
-package = drupalfi
-configure = admin/config/custom_blocks/
