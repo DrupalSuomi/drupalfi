@@ -8,9 +8,9 @@ name: 'drupalfi'
 
 # The runtime the application uses.
 type: 'php:8.0'
-runtime:
-    extensions:
-        - redis
+#runtime:
+#    extensions:
+#        - redis
 
 # The relationships of the application with services or other applications.
 #
@@ -19,7 +19,7 @@ runtime:
 # side is in the form `<service name>:<endpoint name>`.
 relationships:
     database: 'mysqldb:mysql'
-    redis: 'cache:redis'
+#    redis: 'cache:redis'
 #    solr: 'solrsearch:solr'
 
 # The size of the persistent disk of the application (in MB).

@@ -7,5 +7,5 @@ mysqldb:
   type: mysql:10.3
   disk: 1024
 
-cache:
-  type: redis:6.0
+#cache:
+#  type: redis:6.0
