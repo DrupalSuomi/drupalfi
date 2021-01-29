@@ -11,9 +11,6 @@ type: 'php:8.0'
 #runtime:
 #    extensions:
 #        - redis
-dependencies:
-    php:
-        composer/composer: '^2.0'
 
 # The relationships of the application with services or other applications.
 #
@@ -47,6 +44,9 @@ mounts:
         source_path: 'drush-backups'
 
 # Configuration of the build of this application.
+dependencies:
+    php:
+        'composer/composer': '^2.0.9'
 build:
     flavor: composer
 
