@@ -10,8 +10,8 @@ _core:
   default_config_hash: oxx42senoNVyvKqVWyrphaynw-aZ1ijr1OmHNM3UVW4
 id: drupal_fi_syndicate
 theme: drupal_fi
-region: sidebar_first
-weight: 0
+region: social
+weight: -6
 provider: null
 plugin: node_syndicate_block
 settings:

@@ -8,8 +8,8 @@ dependencies:
     - drupal_fi
 id: drupal_fi_platform_footer_block
 theme: drupal_fi
-region: sidebar_first
-weight: 0
+region: footer_bottom
+weight: -6
 provider: null
 plugin: platform_footer
 settings:

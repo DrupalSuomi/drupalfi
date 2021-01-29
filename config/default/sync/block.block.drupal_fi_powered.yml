@@ -10,8 +10,8 @@ _core:
   default_config_hash: ygYOxNV388KKajE2oZsiM9hejoed0gu5WeXcLR_zfzM
 id: drupal_fi_powered
 theme: drupal_fi
-region: sidebar_first
-weight: 0
+region: footer_bottom
+weight: -5
 provider: null
 plugin: system_powered_by_block
 settings:

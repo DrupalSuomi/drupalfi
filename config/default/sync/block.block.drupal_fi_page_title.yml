@@ -8,8 +8,8 @@ _core:
   default_config_hash: WImvmaBdDpwIqobqbDWebBnyxssRvrNEnZSQbOsvOe4
 id: drupal_fi_page_title
 theme: drupal_fi
-region: sidebar_first
-weight: -5
+region: content_above
+weight: -6
 provider: null
 plugin: page_title_block
 settings:
