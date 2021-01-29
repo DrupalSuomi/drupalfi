@@ -1,0 +1,12 @@
+<?php
+
+/**
+ * Implements hook_theme().
+ */
+function platform_footer_theme($existing, $type, $theme, $path) {
+  return [
+    'platform_footer' => [
+      'template' => 'platform-footer',
+    ],
+  ];
+}

@@ -1,0 +1,4 @@
+styles:
+  css:
+    layout:
+      css/platform-footer.css: {}

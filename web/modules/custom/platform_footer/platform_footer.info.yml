@@ -1,0 +1,5 @@
+type: module
+name: 'Platform Footer'
+core_version_requirement: ^8.8 || ^9
+description: 'Provides a block for Platform.sh footer'
+package: 'Drupal.fi'
