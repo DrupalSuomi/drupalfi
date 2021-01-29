@@ -1,0 +1,25 @@
+uuid: 838142b6-cbb9-4bb3-b0e1-7df895328e85
+langcode: fi
+status: true
+dependencies:
+  config:
+    - field.field.node.page.field_body
+    - node.type.page
+  module:
+    - text
+    - user
+id: node.page.default
+targetEntityType: node
+bundle: page
+mode: default
+content:
+  field_body:
+    weight: 1
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+    type: text_default
+    region: content
+hidden:
+  langcode: true
+  links: true

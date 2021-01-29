@@ -1,0 +1,20 @@
+uuid: 683f5d79-0c09-4ea6-b20b-1c48f5e24b65
+langcode: fi
+status: true
+dependencies:
+  module:
+    - platform_footer
+  theme:
+    - olivero
+id: platform_footer_block
+theme: olivero
+region: footer_bottom
+weight: 0
+provider: null
+plugin: platform_footer
+settings:
+  id: platform_footer
+  label: 'Platform.sh sponsor footer block'
+  provider: platform_footer
+  label_display: '0'
+visibility: {  }
