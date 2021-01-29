@@ -1,0 +1,20 @@
+uuid: a44db4dd-9d63-42f0-b65b-96b276550086
+langcode: fi
+status: true
+dependencies:
+  theme:
+    - drupal_fi
+_core:
+  default_config_hash: sBMSSrWtP58IZaz1i3-MJ9yq_y32w1nc7N5DZJmt-4M
+id: drupal_fi_primary_admin_actions
+theme: drupal_fi
+region: highlighted
+weight: -5
+provider: null
+plugin: local_actions_block
+settings:
+  id: local_actions_block
+  label: 'Primary admin actions'
+  provider: core
+  label_display: '0'
+visibility: {  }

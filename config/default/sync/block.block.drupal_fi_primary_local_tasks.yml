@@ -1,0 +1,22 @@
+uuid: 9f07ee44-b09f-45b3-bcba-3eadbe0d20e8
+langcode: fi
+status: true
+dependencies:
+  theme:
+    - drupal_fi
+_core:
+  default_config_hash: ra6f6AXShbzKP9r6uPc9cfCx2KuomlPqmt1WWPUuDf0
+id: drupal_fi_primary_local_tasks
+theme: drupal_fi
+region: highlighted
+weight: -4
+provider: null
+plugin: local_tasks_block
+settings:
+  id: local_tasks_block
+  label: 'Primary tabs'
+  provider: core
+  label_display: '0'
+  primary: true
+  secondary: false
+visibility: {  }

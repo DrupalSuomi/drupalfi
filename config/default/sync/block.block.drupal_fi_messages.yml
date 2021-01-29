@@ -1,0 +1,22 @@
+uuid: 2da03684-1b9b-40e8-8dcb-14c1c15d809b
+langcode: fi
+status: true
+dependencies:
+  module:
+    - system
+  theme:
+    - drupal_fi
+_core:
+  default_config_hash: KfyaTPRJEcAyy2e5AxEfWQnuHcn4WrfvcWek7lSmHZQ
+id: drupal_fi_messages
+theme: drupal_fi
+region: highlighted
+weight: -5
+provider: null
+plugin: system_messages_block
+settings:
+  id: system_messages_block
+  label: 'Status messages'
+  provider: system
+  label_display: '0'
+visibility: {  }

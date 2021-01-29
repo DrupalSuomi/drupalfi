@@ -1,0 +1,22 @@
+uuid: a4cf6276-dd33-4a1d-81ac-1f3c3ec91652
+langcode: fi
+status: true
+dependencies:
+  module:
+    - system
+  theme:
+    - drupal_fi
+_core:
+  default_config_hash: XMsRP1YhWAcorbrFWZglMYJ_SgWHyF3fyCh5vDXaUN4
+id: drupal_fi_breadcrumbs
+theme: drupal_fi
+region: breadcrumb
+weight: 0
+provider: null
+plugin: system_breadcrumb_block
+settings:
+  id: system_breadcrumb_block
+  label: Breadcrumbs
+  provider: system
+  label_display: '0'
+visibility: {  }

@@ -1,0 +1,20 @@
+uuid: 63f564d1-2b9a-4262-bd1d-169424cd60df
+langcode: fi
+status: true
+dependencies:
+  theme:
+    - drupal_fi
+_core:
+  default_config_hash: WImvmaBdDpwIqobqbDWebBnyxssRvrNEnZSQbOsvOe4
+id: drupal_fi_page_title
+theme: drupal_fi
+region: sidebar_first
+weight: -5
+provider: null
+plugin: page_title_block
+settings:
+  id: page_title_block
+  label: 'Page title'
+  provider: core
+  label_display: '0'
+visibility: {  }

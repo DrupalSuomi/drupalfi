@@ -1,0 +1,23 @@
+uuid: 67ee7c47-7adb-49bf-8373-aafbfe4c40dd
+langcode: fi
+status: true
+dependencies:
+  module:
+    - node
+  theme:
+    - drupal_fi
+_core:
+  default_config_hash: oxx42senoNVyvKqVWyrphaynw-aZ1ijr1OmHNM3UVW4
+id: drupal_fi_syndicate
+theme: drupal_fi
+region: sidebar_first
+weight: 0
+provider: null
+plugin: node_syndicate_block
+settings:
+  id: node_syndicate_block
+  label: 'RSS feed'
+  provider: node
+  label_display: '0'
+  block_count: 10
+visibility: {  }

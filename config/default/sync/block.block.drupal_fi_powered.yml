@@ -1,0 +1,22 @@
+uuid: 6275d87a-e3cb-4f74-887e-466c2eff4585
+langcode: fi
+status: true
+dependencies:
+  module:
+    - system
+  theme:
+    - drupal_fi
+_core:
+  default_config_hash: ygYOxNV388KKajE2oZsiM9hejoed0gu5WeXcLR_zfzM
+id: drupal_fi_powered
+theme: drupal_fi
+region: sidebar_first
+weight: 0
+provider: null
+plugin: system_powered_by_block
+settings:
+  id: system_powered_by_block
+  label: 'Powered by Drupal'
+  provider: system
+  label_display: '0'
+visibility: {  }

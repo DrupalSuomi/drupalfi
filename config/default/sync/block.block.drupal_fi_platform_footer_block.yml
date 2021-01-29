@@ -1,0 +1,20 @@
+uuid: 7419cde1-d6de-4a77-a71d-177e8a603018
+langcode: fi
+status: true
+dependencies:
+  module:
+    - platform_footer
+  theme:
+    - drupal_fi
+id: drupal_fi_platform_footer_block
+theme: drupal_fi
+region: sidebar_first
+weight: 0
+provider: null
+plugin: platform_footer
+settings:
+  id: platform_footer
+  label: 'Platform.sh sponsor footer block'
+  provider: platform_footer
+  label_display: '0'
+visibility: {  }
