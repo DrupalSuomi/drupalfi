@@ -11,6 +11,9 @@ type: 'php:8.0'
 #runtime:
 #    extensions:
 #        - redis
+dependencies:
+    php:
+        composer/composer: '^2.0'
 
 # The relationships of the application with services or other applications.
 #
