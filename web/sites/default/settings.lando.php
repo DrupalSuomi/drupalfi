@@ -29,3 +29,7 @@ if (!empty($lando_info)) {
 }
 // Make hash salt out of whole lando info.
 $settings['hash_salt'] = md5($lando_info);
+$settings['trusted_host_patterns'] = [
+  '^drupalfi\.lndo\.site$',
+  '^www\.drupalfi\.lndo\.site$',
+];
