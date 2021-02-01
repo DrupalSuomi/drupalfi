@@ -31,6 +31,8 @@ credentials.env
 
 # Ignore SQL dump files
 lando/sql-dumps
+*.sql
+*.sql.gz
 
 ### OSX ###
 .DS_Store
