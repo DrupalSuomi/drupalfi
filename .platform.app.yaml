@@ -53,13 +53,8 @@ hooks:
         /app/vendor/bin/drush init -y
     # The deploy hook runs after your application has been deployed and started on a readonly fs.
     deploy: |
-        vendor/bin/drush cache-rebuild
-        vendor/bin/drush -y updatedb --no-post-updates
-        vendor/bin/drush -y config-import
-        vendor/bin/drush cache-rebuild
-        vendor/bin/drush -y updatedb
-        vendor/bin/drush cache-rebuild
-        vendor/bin/drush cron
+        /app/vendor/bin/drush deploy -y
+        /app/vendor/bin/drush cron
 
     # The configuration of app when it is exposed to the web.
 web:
